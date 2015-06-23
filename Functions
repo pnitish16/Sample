@@ -1,0 +1,1220 @@
+package com.vijaywebsolutions.vws_library.util;
+
+import java.text.DateFormat;
+import java.text.DecimalFormat;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.TimeZone;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import android.accounts.Account;
+import android.accounts.AccountManager;
+import android.annotation.SuppressLint;
+import android.app.Activity;
+import android.app.ActivityManager;
+import android.app.ActivityManager.RunningServiceInfo;
+import android.app.DatePickerDialog;
+import android.app.Dialog;
+import android.app.TimePickerDialog;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.res.Resources;
+import android.graphics.Color;
+import android.graphics.Typeface;
+import android.graphics.drawable.GradientDrawable;
+import android.location.LocationManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.BatteryManager;
+import android.os.Build;
+import android.os.Bundle;
+import android.provider.Browser;
+import android.support.v4.app.DialogFragment;
+import android.support.v4.app.FragmentActivity;
+import android.text.Html;
+import android.text.SpannableStringBuilder;
+import android.text.Spanned;
+import android.text.TextUtils;
+import android.text.TextUtils.TruncateAt;
+import android.text.method.LinkMovementMethod;
+import android.text.style.ClickableSpan;
+import android.util.DisplayMetrics;
+import android.view.View;
+import android.view.ViewTreeObserver;
+import android.view.ViewTreeObserver.OnGlobalLayoutListener;
+import android.widget.Button;
+import android.widget.DatePicker;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.TextView.BufferType;
+import android.widget.TimePicker;
+import android.widget.Toast;
+
+import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+
+//TypeToken<SettingData> token = new TypeToken<SettingData>() {};
+//settingData = new Gson().fromJson(strSession, token.getType());
+@SuppressLint("SimpleDateFormat")
+public class CommonCode
+{
+
+	private Context context;
+
+	public CommonCode(Context context)
+	{
+		this.context = context;
+	}
+
+	/**
+	 * This is used to check weather Internet is on or off
+	 * 
+	 * @return true if internet is on else return false
+	 */
+	public boolean checkInternet()
+	{
+		try
+		{
+			ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+			if (connectivity != null)
+			{
+				NetworkInfo[] info = connectivity.getAllNetworkInfo();
+				if (info != null)
+				{
+					for (int i = 0; i < info.length; i++)
+					{
+						// check if network is connected or device is in range
+						if (info[i].getState() == NetworkInfo.State.CONNECTED)
+						{
+							return true;
+						}
+					}
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/**
+	 * This is used to check weather Internet is on or off
+	 * 
+	 * @author Pravin 6:08:55 PM
+	 * @return true if internet is on else return false
+	 */
+	public static boolean checkInternet(Context context)
+	{
+		try
+		{
+			ConnectivityManager connectivity = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+			if (connectivity != null)
+			{
+				NetworkInfo[] info = connectivity.getAllNetworkInfo();
+				if (info != null)
+				{
+					for (int i = 0; i < info.length; i++)
+					{
+						// check if network is connected or device is in range
+						if (info[i].getState() == NetworkInfo.State.CONNECTED)
+						{
+							return true;
+						}
+					}
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/**
+	 * This is used to check is gps enable or not
+	 * 
+	 * @return true if gps is on else return false
+	 */
+	public boolean checkGPS()
+	{
+		// create result variable
+		boolean canGetLocation = false;
+		try
+		{
+			// create location manager class
+			LocationManager locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+			// getting GPS status
+			boolean isGPSEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER);
+			// getting network status
+			boolean isNetworkEnabled = locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER);
+
+			if (!isGPSEnabled && !isNetworkEnabled)
+			{
+				// no network provider is enabled
+				canGetLocation = false;
+			}
+			else
+			{
+				canGetLocation = true;
+			}
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		// return
+		return canGetLocation;
+	}
+
+	/**
+	 * This is used to get normal font.
+	 * 
+	 * @return AppleGaramond-Light font
+	 */
+	public Typeface getNormalFont()
+	{
+		return Typeface.createFromAsset(context.getAssets(), "fonts/AppleGaramond-Light.ttf");
+	}
+
+	/**
+	 * This is used to get Bold font.
+	 * 
+	 * @return AppleGaramond-Light font
+	 */
+	public Typeface getBoldFont()
+	{
+		return Typeface.createFromAsset(context.getAssets(), "fonts/AppleGaramond-Light.ttf");
+	}
+
+	/**
+	 * This is used to check email format
+	 * 
+	 * @param email
+	 * @return true if email valid else return false
+	 */
+	public boolean checkEmailValidOrNot(String email)
+	{
+		boolean isValid = false;
+
+		String expression = "^[\\w\\.-]+@([\\w\\-]+\\.)+[A-Z]{2,4}$";
+		CharSequence inputStr = email;
+
+		Pattern pattern = Pattern.compile(expression, Pattern.CASE_INSENSITIVE);
+		Matcher matcher = pattern.matcher(inputStr);
+		if (matcher.matches())
+		{
+			isValid = true;
+		}
+		return isValid;
+	}
+
+	/**
+	 * This is used to show No Internet connection Toast
+	 * 
+	 */
+	public void showNoInternetConnection()
+	{
+		// get message from string.xml
+		Toast.makeText(context, "No Internet Connection", Toast.LENGTH_LONG).show();
+	}
+
+	/**
+	 * This is used to show Data Found Toast
+	 * 
+	 * @author Pravin 9:36:11 PM
+	 */
+	public void showNoDataFound()
+	{
+		Toast.makeText(context, "No Data Found", Toast.LENGTH_LONG).show();
+	}
+
+	/**
+	 * This is used to show Messages from Resource file
+	 * 
+	 * @param msgId
+	 */
+	public void showMessage(int msgId)
+	{
+		// get message from string.xml
+		String message = context.getString(msgId);
+		Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+	}
+
+	/**
+	 * This is used to show String Message
+	 * 
+	 * @param message
+	 */
+	public void showMessage(String message)
+	{
+		Toast.makeText(context, message, Toast.LENGTH_LONG).show();
+	}
+
+	/**
+	 * This is used to get Date in specified format
+	 * 
+	 * @param pattern
+	 *            in which date string is return
+	 * @return date in String format
+	 */
+	public String getDateString(String strDateFormat)
+	{
+		// create date format
+		SimpleDateFormat sdf = new SimpleDateFormat(strDateFormat);
+		String dateString = sdf.format(new Date());
+		// return date
+		return dateString;
+	}
+
+	/**
+	 * Method to get GMT date string
+	 * @param pattern in which date format required
+	 * @return date string in GMT format
+	 */
+	public String get_GMT_DateString(String strDateFormat)
+	{
+		DateFormat date = new SimpleDateFormat(strDateFormat);// like yyyy-MM-dd HH:mm:ss
+		date.setTimeZone(TimeZone.getTimeZone("GMT"));
+		String localTime = date.format(new Date());
+		return localTime;
+	}
+
+	/**
+	 * Method for calculate date difference between two dates
+	 * 
+	 * @param strEnterDate
+	 * @param strTodayDate
+	 * @param strDateFormat
+	 * @return differnce between two dates
+	 */
+	public static long getDateDiffString(String strEnterDate, String strTodayDate, String strDateFormat)
+	{
+		try
+		{
+			Date dateToday = null, dateEnter = null;
+			SimpleDateFormat formatter = new SimpleDateFormat(strDateFormat);// like yyyy-MM-dd HH:mm:ss
+			dateToday = formatter.parse(strTodayDate);
+			dateEnter = formatter.parse(strEnterDate);
+			long timeOne = dateToday.getTime();
+			long timeTwo = dateEnter.getTime();
+			long oneDay = 1000 * 60 * 60 * 24; // calculate diiference in days
+			// long oneDay = 1000 * 60 * 60 ; // calculate diiference in hours
+			// long oneDay = 1000 * 60 ; // calculate diiference in minutes
+			// long oneDay = 1000; // calculate diiference in Seconds
+			long delta = (timeTwo - timeOne) / oneDay;
+
+			return delta;
+		}
+		catch (java.text.ParseException e)
+		{
+			e.printStackTrace();
+			return 0;
+		}
+	}
+
+	/**
+	 * @param str_input input date string
+	 * @param strSourceFormat input date format
+	 * @param strOputputFormat format of output date string
+	 * @return formatted date string
+	 */
+	public static String change_Date_Format(String str_input, String strSourceFormat, String strOputputFormat)
+	{
+		String desiredDateString = "";
+		if (str_input != null && !str_input.equalsIgnoreCase(""))
+		{
+			Date input_date = null;
+			SimpleDateFormat sourceFormat = new SimpleDateFormat(strSourceFormat);
+			SimpleDateFormat desiredFormat = new SimpleDateFormat(strOputputFormat);
+			try
+			{
+				input_date = sourceFormat.parse(str_input);
+				desiredDateString = desiredFormat.format(input_date);
+			}
+			catch (ParseException e)
+			{
+				e.printStackTrace();
+			}
+		}
+		return desiredDateString;
+	}
+
+	/**
+	 * @param distance in miles
+	 * @return meters
+	 */
+	public double ConvertMilesToMeters(double distance)
+	{
+		return Math.round((double) (distance) * 1609.34);
+	}
+
+	/**
+	 * Methos for calculating distance between two locations
+	 * @param lat1
+	 * @param lon1
+	 * @param lat2
+	 * @param lon2
+	 * @return distance
+	 */
+	public double calculate_distance(double lat1, double lon1, double lat2, double lon2)
+	{
+		// Find the deltas
+		double delta_lon = degtorad(lon2) - degtorad(lon1);
+
+		// Find the Great Circle distance
+		double distance = Math.acos(Math.sin(degtorad(lat1)) * Math.sin(degtorad(lat2)) + Math.cos(degtorad(lat1)) * Math.cos(degtorad(lat2)) * Math.cos(delta_lon)) * 3963.189;
+		return distance;
+	}
+
+	public double degtorad(double val)
+	{
+		double pi = Math.PI;
+		double de_ra = ((val) * (pi / 180));
+		return de_ra;
+	}
+
+	/**
+	 * This method check whether service is running or not
+	 * 
+	 * @param serviceClass Service Class
+	 * @return true if service is running else false
+	 */
+	public static boolean isMyServiceRunning(Class<?> serviceClass, Context context1)
+	{
+		ActivityManager manager = (ActivityManager) context1.getSystemService(Context.ACTIVITY_SERVICE);
+		for (RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE))
+		{
+			if (serviceClass.getName().equals(service.service.getClassName()))
+			{
+				return true;
+			}
+		}
+		return false;
+	}
+
+	/**
+	 * This is used to format double value into 4 digits
+	 * 
+	 * @param value
+	 * @return String value upto 4 decimal places
+	 */
+	public String formatTo4Digit(String string)
+	{
+		// convert number into
+		double value = Double.parseDouble(string);
+		// create formatter
+		DecimalFormat format = new DecimalFormat("##.####");
+
+		// return formatted value
+		return format.format(value);
+	}
+	
+
+	/**
+	 * This is used to format double value into 4 digits
+	 * 
+	 * @param value
+	 * @return String value upto 4 decimal places
+	 */
+	public String formatTo4Digit(double value)
+	{
+		// create formatter
+		DecimalFormat format = new DecimalFormat("##.####");
+		// return formatted value
+		return format.format(value);
+	}
+
+	/**
+	 * This is used to format double value into 2 digits
+	 * 
+	 * @param value
+	 * @return String value upto 4 decimal places
+	 */
+	public String formatTo2Digit(String string)
+	{
+		double value = Double.parseDouble(string);
+		DecimalFormat format = new DecimalFormat("##.##");
+		return format.format(value);
+	}
+
+	/**
+	 * This is used to add marquee effect to textview
+	 * 
+	 * @param textView
+	 */
+	public void addMarqueeEffect(TextView textView)
+	{
+		TextView tf = textView;
+		tf.setEllipsize(TruncateAt.MARQUEE);
+		tf.setMarqueeRepeatLimit(-1);
+		tf.setSingleLine(true);
+		tf.setSelected(true);
+	}
+
+	/**
+	 * Method to get battery level of device
+	 * 
+	 * @return battery level in percenatge
+	 */
+	public int getBatteryLevel()
+	{
+		IntentFilter ifilter = new IntentFilter(Intent.ACTION_BATTERY_CHANGED);
+		Intent batteryStatus = context.registerReceiver(null, ifilter);
+		return batteryStatus.getIntExtra(BatteryManager.EXTRA_LEVEL, 0);
+	}
+
+	/**
+	 * Sort JSON Array according to key
+	 * 
+	 * @param array
+	 * @param str_sort_Key
+	 * @return sorted json array
+	 * @author Samadhan Medge
+	 */
+	public JSONArray sortJsonArray(JSONArray array, final String str_sort_Key)
+	{
+		List<JSONObject> jsons = new ArrayList<JSONObject>();
+		try
+		{
+			for (int i = 0; i < array.length(); i++)
+			{
+				jsons.add(array.getJSONObject(i));
+			}
+			Collections.sort(jsons, new Comparator<JSONObject>()
+			{
+				@Override
+				public int compare(JSONObject lhs, JSONObject rhs)
+				{
+					try
+					{
+						String lid = lhs.getString(str_sort_Key);
+
+						String rid = rhs.getString(str_sort_Key);
+						return lid.compareTo(rid);
+					}
+					catch (JSONException e)
+					{
+						e.printStackTrace();
+					}
+					// Here you could parse string id to integer and then
+					// compare.
+					return 0;
+				}
+			});
+		}
+		catch (JSONException e)
+		{
+			e.printStackTrace();
+		}
+		return new JSONArray(jsons);
+	}
+
+	/**
+	 * Method to convert dp to pixel
+	 * 
+	 * @param dp
+	 * @return pixel
+	 * @author Samadhan Medge
+	 */
+	public int convertDpToPixel(float dp)
+	{
+		Resources resources = context.getResources();
+		DisplayMetrics metrics = resources.getDisplayMetrics();
+		float px = dp * (metrics.densityDpi / 160f);
+		return (int)px;
+	}
+	
+	/**
+	 * Method to convert dp to pixel
+	 * 
+	 * @param dp
+	 * @return pixel
+	 */
+	public static int convertDpToPixel(float dp,Context context)
+	{
+		Resources resources = context.getResources();
+		DisplayMetrics metrics = resources.getDisplayMetrics();
+		float px = dp * (metrics.densityDpi / 160f);
+		return (int)px;
+	}
+
+	/**
+	 * Method to check whether given date is past or not
+	 * 
+	 * @param strDate
+	 * @param strPattern
+	 * @return true if given date is past else return false
+	 */
+	@SuppressLint("SimpleDateFormat")
+	public static boolean isPastDate(String strDate, String strPattern)
+	{
+		long diff;
+		SimpleDateFormat formatter = new SimpleDateFormat(strPattern);// MM-dd-yyyy
+		try
+		{
+			Calendar calendar = Calendar.getInstance();
+			diff = getDateDiffString(strDate, formatter.format(calendar.getTime()),strPattern);
+			if (diff < 0)
+				return true;
+			else
+				return false;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return false;
+	}
+
+	/**
+	 * Method to get Current date in given pattern
+	 * 
+	 * @param strPattern
+	 * @return current date in given format
+	 */
+	@SuppressLint("SimpleDateFormat")
+	public String getTodayDate(String strPattern)
+	{
+		String strDate = "";
+		SimpleDateFormat formatter = new SimpleDateFormat(strPattern);
+		try
+		{
+			Calendar calendar = Calendar.getInstance();
+			strDate = formatter.format(calendar.getTime());
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return strDate;
+	}
+
+	/**
+	 * Method to get date next or previous, if we pass 100 then it return date
+	 * after 100days
+	 * @param next_or_prev 0 for today, -1 for yesterday,1 for tomarrow....
+	 * @return return desired date
+	 */
+	@SuppressLint("SimpleDateFormat")
+	public String getNextOrPreviousDate(int next_or_prev, String strDateFormat)
+	{
+		String strDate = "";
+		SimpleDateFormat formatter = new SimpleDateFormat(strDateFormat);
+		try
+		{
+			Calendar calendar = Calendar.getInstance();
+			calendar.add(Calendar.DATE, next_or_prev);
+			strDate = formatter.format(calendar.getTime());
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+		}
+		return strDate;
+	}
+
+	/**
+	 * Method for convert hashmap string to HashMap
+	 * @param strHashMap
+	 * @return HashMap<String, String>
+	 */
+	public static HashMap<String, String> convert_HashMapString_To_HashMap(String strHashMap)
+	{
+		TypeToken<HashMap<String, String>> token = new TypeToken<HashMap<String, String>>()
+		{
+		};
+		return new Gson().fromJson(strHashMap, token.getType());
+	}
+
+	/**
+	 * Method for convert string to ArrayList
+	 * @param strArrayList
+	 * @return ArrayList<HashMap<String, String>>
+	 */
+	public static ArrayList<HashMap<String, String>> convert_ArrayListString_To_Arraylist(String strArrayList)
+	{
+		TypeToken<ArrayList<HashMap<String, String>>> token = new TypeToken<ArrayList<HashMap<String, String>>>()
+		{
+		};
+		return new Gson().fromJson(strArrayList, token.getType());
+	}
+
+	/**
+	 * Method to create GradientDrable with rounded corner
+	 * @param startColor
+	 * @param centerColor
+	 * @param endColor
+	 * @param cornerRadii
+	 * @return GradientDrawable Object
+	 */
+	public GradientDrawable create_GradientDrawable(int startColor, int centerColor, int endColor, int cornerRadii)
+	{
+		/*
+		 * int colors[] = { 0xff255779 , 0xff3e7492, 0xffa6c0cd }; final
+		 * GradientDrawable drawable = new
+		 * GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, colors);
+		 * drawable.setShape(GradientDrawable.RECTANGLE);
+		 * drawable.setCornerRadii(new float [] { 0, 0, 5, 5, 0, 0, 0, 0});
+		 * //top-left, top-right, bottom-right, bottom-left
+		 */
+		int colors[] =
+		{ startColor, centerColor, endColor };// 0xff255779 input color format
+												// in hex
+		final GradientDrawable gradientDrawable = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM, colors);
+		gradientDrawable.setShape(GradientDrawable.RECTANGLE);
+		gradientDrawable.setCornerRadii(new float[]
+		{ cornerRadii, cornerRadii, cornerRadii, cornerRadii, cornerRadii, cornerRadii, cornerRadii, cornerRadii }); // top-left,
+		// top-right,
+		// bottom-right,
+		// bottom-left
+		return gradientDrawable;
+	}
+
+	/**
+	 * Method for sorting arrayList
+	 * @param Arraylist  to be sort and hashmap key
+	 * @param strHashMapKey key by which arraylist sort
+	 * @param asc_or_desc 1 if ascending sorting 0 if descending sorting
+	 * @return return sorted arraylist
+	 */
+	@SuppressWarnings(
+	{ "unchecked", "rawtypes" })
+	public static void sortArrayList(ArrayList<HashMap<String, String>> arrayList, final String strHashMapKey, final int asc_or_desc)
+	{
+		Collections.sort(arrayList, new Comparator()
+		{
+			@Override
+			public int compare(Object o2, Object o1)
+			{
+				HashMap<String, String> map1 = (HashMap) o1;
+				HashMap<String, String> map2 = (HashMap) o2;
+				String s1 = (String) map1.get(strHashMapKey);
+				String s2 = (String) map2.get(strHashMapKey);
+				if(asc_or_desc==1)
+					return s1.compareTo(s2);
+				else
+					return s2.compareTo(s1);
+			}
+		});
+	}
+
+	/**
+	 * This is used to get user email id Ragestered in mobile
+	 * @param textView
+	 */
+	public static String getEmail(Context context)
+	{
+		AccountManager accountManager = AccountManager.get(context);
+		Account account = getAccount(accountManager);
+
+		if (account == null)
+		{
+			return null;
+		}
+		else
+		{
+			return account.name;
+		}
+	}
+
+	/**
+	 * Class to get device Signed google Account
+	 * @param AccountManager
+	 * @return Account
+	 */
+	private static Account getAccount(AccountManager accountManager)
+	{
+		Account[] accounts = accountManager.getAccountsByType("com.google");
+		Account account;
+		if (accounts.length > 0)
+		{
+			account = accounts[0];
+		}
+		else
+		{
+			account = null;
+		}
+		return account;
+	}
+
+	/**
+	 * Class to show DatePicker Dialog
+	 * @param view EditText or TextView on which you have to set date
+	 * @param isMinMaxDate  1 for Minimum date so that you can only select future date, -1 Maximum date so that you can only select
+	 *  past date or 0 so that you can select any date
+	 * @param strDateFormat Date Format you need like dd/MM/yyyy
+	 * @param isAlwaseSetCurrentDateToPicker true if you want to set current date to picker always otherwise false
+	 */
+	public static class DatePickerFragment extends DialogFragment implements DatePickerDialog.OnDateSetListener
+	{
+		Calendar calendar;
+		SimpleDateFormat sdf;
+		String strDate, strDateFormat;
+		int sdk = android.os.Build.VERSION.SDK_INT, year, month, day,isMinMaxDate;
+		TextView textView = null;
+		EditText editText = null;
+		DatePickerDialog datePickerDialog;
+		boolean isAlwaseSetCurrentDateToPicker;
+
+		public DatePickerFragment(View view, int isMinMaxDate, String strDateFormat, boolean isAlwaseSetCurrentDateToPicker)
+		{
+			this.strDateFormat = strDateFormat;
+			this.isMinMaxDate = isMinMaxDate;
+			this.isAlwaseSetCurrentDateToPicker = isAlwaseSetCurrentDateToPicker;
+			if (view instanceof TextView)
+			{
+				textView = (TextView) view;
+				strDate = textView.getText().toString().trim();
+			}
+			else if(view instanceof EditText)
+			{
+				editText = (EditText) view;
+				strDate = editText.getText().toString().trim();
+			}
+		}
+
+		@SuppressLint({ "NewApi", "SimpleDateFormat" })
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState)
+		{
+			try
+			{
+				// Use the current date as the default date in the picker
+				sdf = new SimpleDateFormat(strDateFormat);// dd/MM/yyyy
+				calendar = Calendar.getInstance();
+				if(strDate!=null && strDate.length()>0 && !isAlwaseSetCurrentDateToPicker)
+					calendar.setTime(sdf.parse(strDate));
+				else
+					strDate = sdf.format(calendar.getTime());
+				year = calendar.get(Calendar.YEAR);
+				month = calendar.get(Calendar.MONTH);
+				day = calendar.get(Calendar.DAY_OF_MONTH);
+				
+				datePickerDialog = new DatePickerDialog(getActivity(), this, year, month, day);
+				
+				if (sdk >= android.os.Build.VERSION_CODES.HONEYCOMB && isMinMaxDate!=0)
+				{
+					if (isMinMaxDate>0)
+						datePickerDialog.getDatePicker().setMinDate(new Date().getTime()- 1000);
+					else
+						datePickerDialog.getDatePicker().setMaxDate(new Date().getTime());
+				}
+			}
+			catch (ParseException e)
+			{
+				e.printStackTrace();
+			}
+			return datePickerDialog;
+		}
+
+		public void onDateSet(DatePicker view, int year, int month, int day)
+		{
+			month = month+1;
+			String strDate = ((month+"").length() == 1 ? "0"+month:month)+ "-" + ((day+"").length() == 1 ? "0"+day:day) + "-" + year;
+			if (isPastDate(strDate, "MM-dd-yyyy") && isMinMaxDate>0)
+				Toast.makeText(getActivity(), "Invalid Date", Toast.LENGTH_SHORT).show();
+			else
+			{
+				strDate = change_Date_Format(strDate, "MM-dd-yyyy", strDateFormat);
+				if (editText != null)
+					editText.setText(strDate);
+				else if (textView != null)
+					textView.setText(strDate);
+			}
+		}
+	}
+	
+	public static class DatePickerFragment1 extends DialogFragment implements DatePickerDialog.OnDateSetListener
+	{
+		Calendar calendar;
+		SimpleDateFormat sdf;
+		String strDate, strDateFormat,mindate;
+		int sdk = android.os.Build.VERSION.SDK_INT, year, month, day,isMinMaxDate;
+		TextView textView = null;
+		EditText editText = null;
+		Button button = null;
+		DatePickerDialog datePickerDialog1;
+		boolean isAlwaseSetCurrentDateToPicker;
+
+		public DatePickerFragment1(View view, int isMinMaxDate, String strDateFormat, String mindate,boolean isAlwaseSetCurrentDateToPicker)
+		{
+			this.strDateFormat = strDateFormat;
+			this.isMinMaxDate = isMinMaxDate;
+			this.mindate = mindate;
+			this.isAlwaseSetCurrentDateToPicker = isAlwaseSetCurrentDateToPicker;
+			if (view instanceof TextView)
+			{
+				textView = (TextView) view;
+				strDate = textView.getText().toString().trim();
+			}
+			else if(view instanceof EditText)
+			{
+				editText = (EditText) view;
+				strDate = editText.getText().toString().trim();
+			}
+			else if(view instanceof Button)
+			{
+				button = (Button) view;
+				strDate = button.getText().toString().trim();
+			}
+		}
+
+		@SuppressLint({ "NewApi", "SimpleDateFormat" })
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState)
+		{
+			try
+			{
+				// Use the current date as the default date in the picker
+				sdf = new SimpleDateFormat(strDateFormat);// dd/MM/yyyy
+				calendar = Calendar.getInstance();
+				
+				
+				Calendar cal = Calendar.getInstance();
+				SimpleDateFormat sdf = new SimpleDateFormat(strDateFormat);
+				cal.setTime(sdf.parse(mindate));// all done
+				
+//				System.err.println("Mindate:-" +mindate);
+				System.err.println("Min Date:-"+cal.get(Calendar.DATE)+"/"+cal.get(Calendar.MONTH)+"/"+cal.get(Calendar.YEAR));
+
+				if(strDate!=null && strDate.length()>0 && !isAlwaseSetCurrentDateToPicker)
+					calendar.setTime(sdf.parse(strDate));
+				else
+					strDate = sdf.format(calendar.getTime());
+				
+				year = calendar.get(Calendar.YEAR);
+				month = calendar.get(Calendar.MONTH);
+				day = calendar.get(Calendar.DAY_OF_MONTH);
+				
+				datePickerDialog1 = new DatePickerDialog(getActivity(), this, year, month, day);
+				
+				if (sdk >= android.os.Build.VERSION_CODES.HONEYCOMB && isMinMaxDate!=0)
+				{
+					if (isMinMaxDate>0)
+						datePickerDialog1.getDatePicker().setMinDate(cal.getTimeInMillis());//- 1000);
+					else
+						datePickerDialog1.getDatePicker().setMaxDate(new Date().getTime());
+				}
+			}
+			catch (ParseException e)
+			{
+				e.printStackTrace();
+			}
+			return datePickerDialog1;
+		}
+
+		public void onDateSet(DatePicker view, int year, int month, int day)
+		{
+			month = month+1;
+			String strDate = pad(month)+"-"+pad(day)+"-"+pad(year);
+			if (isPastDate(strDate, "MM-dd-yyyy") && isMinMaxDate>0)
+				Toast.makeText(getActivity(), "Invalid Date", Toast.LENGTH_SHORT).show();
+			else
+			{
+				strDate = change_Date_Format(strDate, "MM-dd-yyyy", strDateFormat);
+				if (editText != null)
+					editText.setText(strDate);
+				else if (textView != null)
+					textView.setText(strDate);
+				else if(button != null){
+					button.setText(strDate);
+				}
+			}
+		}
+	}
+
+	/**
+	 * Class to show TimePicker Dialog
+	 * @param EditText or TextView on which you have to set time
+	 */
+	public static class TimePickerFragment extends DialogFragment implements TimePickerDialog.OnTimeSetListener
+	{
+		EditText editText;
+		TextView textView;
+		FragmentActivity activity;
+		Context context;
+
+		public TimePickerFragment(EditText editText, TextView textView, Context context)
+		{
+			this.editText = editText;
+			this.textView = textView;
+			this.context = context;
+		}
+
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState)
+		{
+			// Use the current time as the default values for the picker
+			final Calendar c = Calendar.getInstance();
+			int hour = c.get(Calendar.HOUR_OF_DAY);
+			int minute = c.get(Calendar.MINUTE);
+
+			// Create a new instance of TimePickerDialog and return it
+			return new TimePickerDialog(getActivity(), this, hour, minute, android.text.format.DateFormat.is24HourFormat(context));
+		}
+
+		public void onTimeSet(TimePicker view, int hourOfDay, int minute)
+		{
+			// String str = "AM";
+			if (hourOfDay > 12)
+			{
+				hourOfDay = hourOfDay - 12;
+				// str = "PM";
+			}
+			if (editText != null)
+				editText.setText(((hourOfDay + "").length() == 1 ? "0" + hourOfDay : hourOfDay + "") + ":" + ((minute + "").length() == 1 ? "0" + minute : minute + ""));
+			else if (textView != null)
+				textView.setText(((hourOfDay + "").length() == 1 ? "0" + hourOfDay : hourOfDay + "") + ":" + ((minute + "").length() == 1 ? "0" + minute : minute + ""));
+		}
+	}
+
+	/**
+	 * Method set link to textView
+	 * @param TextView on Which you have to show links
+	 * @param Activity object to redirect to browser
+	 */
+	public void setLinks(TextView tv, Activity activity)
+	{
+		String text = tv.getText().toString().trim();
+		String[] linkPatterns = { "([Hh][tT][tT][pP][sS]?:\\/\\/[^ ,'\">\\]\\)]*[^\\. ,'\">\\]\\)])", "#[\\w]+", "@[\\w]+" };
+		for (String str : linkPatterns)
+		{
+			Pattern pattern = Pattern.compile(str);
+			Matcher matcher = pattern.matcher(tv.getText());
+			while (matcher.find())
+			{
+				int x = matcher.start();
+				int y = matcher.end();
+				final android.text.SpannableString f = new android.text.SpannableString(tv.getText());
+				InternalURLSpan span = new InternalURLSpan(activity);
+				span.text = text.substring(x, y);
+				f.setSpan(span, x, y, android.text.Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+				tv.setText(f);
+				// tv.setOnLongClickListener(span.l);
+
+			}
+		}
+		tv.setLinkTextColor(Color.BLUE);
+		tv.setLinksClickable(true);
+		tv.setMovementMethod(LinkMovementMethod.getInstance());
+		tv.setFocusable(false);
+	}
+
+	class InternalURLSpan extends android.text.style.ClickableSpan
+	{
+		public String text;
+		Activity activity;
+
+		public InternalURLSpan(Activity activity)
+		{
+			this.activity = activity;
+		}
+
+		@Override
+		public void onClick(View widget)
+		{
+			handleLinkClicked(text, activity);
+		}
+	}
+
+	public void handleLinkClicked(String value, Activity activity)
+	{
+		if (value.startsWith("http"))
+		{
+			// handle http links
+			Uri uri = Uri.parse(value);
+			final Intent i = new Intent(android.content.Intent.ACTION_VIEW, uri);
+			i.putExtra(Browser.EXTRA_APPLICATION_ID, context.getPackageName());
+			activity.startActivityForResult(i, 1);
+		}
+		else if (value.startsWith("@"))
+		{
+			// handle @links
+		}
+		else if (value.startsWith("#"))
+		{
+			// handle #links
+		}
+	}
+
+	/**
+	 * Method to check email validation
+	 * @param String to checking
+	 * @return true if emai_id is valid else false
+	 */
+	public static boolean isEmailValid(String strEmailId)
+	{
+		Pattern pattern = Pattern.compile("^[_A-Za-z0-9-\\+]+(\\.[_A-Za-z0-9-]+)*@" + "[A-Za-z0-9-]+(\\.[A-Za-z0-9]+)*(\\.[A-Za-z]{2,})$");
+		Matcher matcher = pattern.matcher(strEmailId);
+		return matcher.matches();
+	}
+	/**
+	 * Method show error message on Edit Text
+	 * @param EditText on which error message to show and String message to show
+	 */
+	public static void setEditTextErrorMessage(EditText et, String strMessage)
+	{
+		et.setError(Html.fromHtml("<font color='#FF0000'>"+strMessage+"</font>"));
+		et.requestFocus();
+	}
+	
+	/**
+	 * Method to add Read More option at the end of TextView 
+	 * @param tv- TextView to which read more option show 
+	 * @param maxLine - numbers of lines to show
+	 * @param expandText - text to show at the place of read more or view more0
+	 */
+	public static void makeTextViewResizable(final TextView tv, final int maxLine, final String expandText, final boolean viewMore)
+	{
+
+		if (tv.getTag() == null)
+		{
+			tv.setTag(tv.getText());
+		}
+		ViewTreeObserver vto = tv.getViewTreeObserver();
+		vto.addOnGlobalLayoutListener(new OnGlobalLayoutListener()
+		{
+
+			@Override
+			public void onGlobalLayout()
+			{
+
+				ViewTreeObserver obs = tv.getViewTreeObserver();
+				obs.removeGlobalOnLayoutListener(this);
+				if (maxLine == 0)
+				{
+					int lineEndIndex = tv.getLayout().getLineEnd(0);
+					String text = tv.getText().subSequence(0, lineEndIndex - expandText.length() + 1) + " " + expandText;
+					tv.setText(text);
+					tv.setMovementMethod(LinkMovementMethod.getInstance());
+					tv.setText(addClickablePartTextViewResizable(Html.fromHtml(tv.getText().toString()), tv, maxLine, expandText, viewMore), BufferType.SPANNABLE);
+				}
+				else if (maxLine > 0 && tv.getLineCount() >= maxLine)
+				{
+					int lineEndIndex = tv.getLayout().getLineEnd(maxLine - 1);
+					String text = tv.getText().subSequence(0, lineEndIndex - expandText.length() + 1) + " " + expandText;
+					tv.setText(text);
+					tv.setMovementMethod(LinkMovementMethod.getInstance());
+					tv.setText(addClickablePartTextViewResizable(Html.fromHtml(tv.getText().toString()), tv, maxLine, expandText, viewMore), BufferType.SPANNABLE);
+				}
+				else
+				{
+					int lineEndIndex = tv.getLayout().getLineEnd(tv.getLayout().getLineCount() - 1);
+					String text = tv.getText().subSequence(0, lineEndIndex) + " " + expandText;
+					tv.setText(text);
+					tv.setMovementMethod(LinkMovementMethod.getInstance());
+					tv.setText(addClickablePartTextViewResizable(Html.fromHtml(tv.getText().toString()), tv, lineEndIndex, expandText, viewMore), BufferType.SPANNABLE);
+				}
+			}
+		});
+
+	}
+
+	private static SpannableStringBuilder addClickablePartTextViewResizable(final Spanned strSpanned, final TextView tv, final int maxLine, final String spanableText, final boolean viewMore)
+	{
+		String str = strSpanned.toString();
+		SpannableStringBuilder ssb = new SpannableStringBuilder(strSpanned);
+
+		if (str.contains(spanableText))
+		{
+			ssb.setSpan(new ClickableSpan()
+			{
+
+				@Override
+				public void onClick(View widget)
+				{
+
+					if (viewMore)
+					{
+						tv.setLayoutParams(tv.getLayoutParams());
+						tv.setText(tv.getTag().toString(), BufferType.SPANNABLE);
+						tv.invalidate();
+						makeTextViewResizable(tv, -1, "View Less", false);
+					}
+					else
+					{
+						tv.setLayoutParams(tv.getLayoutParams());
+						tv.setText(tv.getTag().toString(), BufferType.SPANNABLE);
+						tv.invalidate();
+						makeTextViewResizable(tv, 3, "View More", true);
+					}
+
+				}
+			}, str.indexOf(spanableText), str.indexOf(spanableText) + spanableText.length(), 0);
+
+		}
+		return ssb;
+
+	}
+	
+	public static String pad(int paramInt)
+	  {
+	    if (paramInt >= 10)
+	      return String.valueOf(paramInt);
+	    return "0" + String.valueOf(paramInt);
+	  }
+	
+	public static String nullparse(String text)
+	{
+		if(text.equals(""))
+			return null;
+		else
+			return text;
+	}
+	
+	public static void setViewData(View view,String text)
+	{
+		if(text!=null)
+		{
+			if(view instanceof EditText)
+			{
+				((EditText) view).setText(text);
+			}
+			else
+			{
+				
+			}
+		}
+	}
+	
+	public static String getDeviceName() {
+	    String manufacturer = Build.MANUFACTURER;
+	    String model = Build.MODEL;
+	    if (model.startsWith(manufacturer)) {
+	        return capitalize(model);
+	    } else {
+	        return capitalize(manufacturer) + " " + model;
+	    }
+	}
+
+
+	public static String capitalize(String s) {
+	    if (s == null || s.length() == 0) {
+	        return "";
+	    }
+	    char first = s.charAt(0);
+	    if (Character.isUpperCase(first)) {
+	        return s;
+	    } else {
+	        return Character.toUpperCase(first) + s.substring(1);
+	    }
+	} 
+
+}
